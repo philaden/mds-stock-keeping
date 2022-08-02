@@ -1,4 +1,7 @@
 postgres:
 	docker start dev-postgres
 
-.PHONY: postgres
+test: 
+	go test -v -cover ./...
+
+.PHONY: postgres test
