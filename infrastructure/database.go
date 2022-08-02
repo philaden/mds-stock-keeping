@@ -6,7 +6,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
-	model "github.com/philaden/mds-stock-keeping/application/domain"
+	"github.com/philaden/mds-stock-keeping/application/domains"
 )
 
 var Connection *gorm.DB
@@ -43,15 +43,15 @@ func SetUpDatabaseServices(dbConfig AppConfiguration) {
 
 func MigrateDatabase() error {
 
-	if err := Connection.AutoMigrate(&model.Product{}).Error; err != nil {
+	if err := Connection.AutoMigrate(&domains.Product{}).Error; err != nil {
 		return err
 	}
 
-	if err := Connection.AutoMigrate(&model.Order{}).Error; err != nil {
+	if err := Connection.AutoMigrate(&domains.Order{}).Error; err != nil {
 		return err
 	}
 
-	if err := Connection.AutoMigrate(&model.OrderItem{}).Error; err != nil {
+	if err := Connection.AutoMigrate(&domains.OrderItem{}).Error; err != nil {
 		return err
 	}
 

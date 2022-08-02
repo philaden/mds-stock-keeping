@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/jinzhu/gorm"
-	domain "github.com/philaden/mds-stock-keeping/application/domain"
-	"github.com/philaden/mds-stock-keeping/application/params"
+	domain "github.com/philaden/mds-stock-keeping/application/domains"
+	params "github.com/philaden/mds-stock-keeping/application/dtos"
 )
 
 type (

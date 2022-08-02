@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/philaden/mds-stock-keeping/application/params"
+	params "github.com/philaden/mds-stock-keeping/application/dtos"
 	Inject "github.com/philaden/mds-stock-keeping/application/services"
 	"github.com/philaden/mds-stock-keeping/infrastructure"
 )

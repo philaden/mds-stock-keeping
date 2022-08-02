@@ -6,11 +6,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
- 
-make: *** No rule to make target `all'.  Stop.
 
-
-# Make data base, printed on Mon Aug  1 14:33:09 2022
+# Make data base, printed on Tue Aug  2 21:13:26 2022
 
 # Variables
 
@@ -18,15 +15,10 @@ make: *** No rule to make target `all'.  Stop.
 <D = $(patsubst %/,%,$(dir $<))
 # automatic
 ?F = $(notdir $?)
-# environment
-ELECTRON_NO_ATTACH_CONSOLE = 1
-# environment
-LC_CTYPE = UTF-8
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
- 
 # automatic
 @F = $(notdir $@)
 # makefile
@@ -46,7 +38,7 @@ __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 INFOPATH = /opt/homebrew/share/info:
 # environment
-VSCODE_CWD = /Users/philip/go/mds-stock-keeping
+VSCODE_CWD = /
 # environment
 GOPROXY = https://proxy.golang.org,direct
 # environment
@@ -78,8 +70,6 @@ HOME = /Users/philip
 # default
 MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
 # environment
-VSCODE_CLI = 1
-# environment
 VSCODE_CODE_CACHE_PATH = /Users/philip/Library/Application Support/Code/CachedData/3b889b090b5ad5793f524b5d1d39fda662b96a2a
 # environment
 LOGNAME = philip
@@ -96,21 +86,17 @@ MAKE = $(MAKE_COMMAND)
 # default
 MAKECMDGOALS := all
 # environment
-SHLVL = 3
+SHLVL = 1
 # default
 MAKE_VERSION := 3.81
 # environment
 USER = philip
 # makefile
 .DEFAULT_GOAL := postgres
-# environment
-TERM_SESSION_ID = 6458B0B0-A43D-4C40-BC3B-B071A0E02908
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # default
 MAKE_COMMAND := /Library/Developer/CommandLineTools/usr/bin/make
-# environment
-TERM_PROGRAM = Apple_Terminal
 # default
 .VARIABLES := 
 # environment
@@ -128,9 +114,7 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-TERM_PROGRAM_VERSION = 443
-# environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.4318529.4318535.57BD0DC1-C8FC-4BC0-881E-951D28C30BAF
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.4318529.4318535
 # environment
 HOMEBREW_PREFIX = /opt/homebrew
 # automatic
@@ -160,12 +144,9 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-TERM = xterm-256color
-# environment
-VSCODE_PID = 799
+VSCODE_PID = 27129
 # variable set hash-table stats:
- 
-# Load=74/1024=7%, Rehash=0, Collisions=2/98=2%
+# Load=67/1024=7%, Rehash=0, Collisions=2/91=2%
 
 # Pattern-specific Variable Values
 
@@ -173,9 +154,9 @@ VSCODE_PID = 799
 
 # Directories
 
-# . (device 16777233, inode 4606062): 12 files, no impossibilities.
+# . (device 16777233, inode 4606062): 14 files, no impossibilities.
 
-# 12 files, no impossibilities in 1 directories.
+# 14 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -201,7 +182,7 @@ all:
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
-.PHONY: postgres test
+.PHONY: postgres
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -215,20 +196,11 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-29 10:44:49
+#  Last modified 2022-08-02 10:43:50
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
-
-test:
-#  Phony target (prerequisite of .PHONY).
-#  Implicit rule search has not been done.
-#  File does not exist.
-#  File has not been updated.
-#  commands to execute (from `Makefile', line 4):
-	go test -v -cover ./...
-	
 
 # Not a target:
 .DEFAULT:
@@ -237,7 +209,7 @@ test:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=7/1024=1%, Rehash=0, Collisions=0/21=0%
+# Load=6/1024=1%, Rehash=0, Collisions=0/19=0%
 # VPATH Search Paths
 
 # No `vpath' search paths.
@@ -249,6 +221,8 @@ test:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Mon Aug  1 14:33:09 2022
+# Finished Make data base on Tue Aug  2 21:13:26 2022
 
  
+make: *** No rule to make target `all'.  Stop.
+
