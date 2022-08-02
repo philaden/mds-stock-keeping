@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/philip/go/mds-stock-keeping'
+docker start dev-postgres
+make: Leaving directory `/Users/philip/go/mds-stock-keeping'
+ 

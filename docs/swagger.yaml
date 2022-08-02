@@ -1,0 +1,42 @@
+info:
+  contact: {}
+  description: This is the api documentation for my solution.
+  title: mds-stock-keeping docs
+  version: "1.0"
+paths:
+  /api/products:
+    get:
+      description: This endpoint fetches a list of all create product
+      produces:
+      - application/json
+      responses: {}
+      summary: Attempts to get all products
+    post:
+      description: This endpoint accept stock information as a csv file
+      produces:
+      - application/json
+      responses: {}
+      summary: update stocks
+  /api/products/:sku:
+    get:
+      description: This endpoint fetches a stock product by its sku
+      produces:
+      - application/json
+      responses: {}
+      summary: Attempts to get a existing product by sku
+  /api/products/singleproduct:
+    post:
+      description: This endpoint creates a single stock product
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new single product
+  /order:
+    post:
+      description: This endpoint creates an order for a product. This endpoint is
+        meant to reduce the unit of stock for product
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new order
+swagger: "2.0"
