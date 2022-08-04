@@ -2,8 +2,7 @@ package domains
 
 import (
 	"errors"
-
-	"github.com/jinzhu/gorm"
+	"time"
 )
 
 const (
@@ -12,7 +11,10 @@ const (
 
 type (
 	Order struct {
-		gorm.Model
+		ID         uint `gorm:"primaryKey"`
+		CreatedAt  time.Time
+		UpdatedAt  time.Time
+		DeletedAt  *time.Time `gorm:"index"`
 		Status     string
 		Total      float64
 		Country    string
@@ -20,6 +22,10 @@ type (
 	}
 
 	OrderItem struct {
+		ID        uint `gorm:"primaryKey"`
+		CreatedAt time.Time
+		UpdatedAt time.Time
+		DeletedAt *time.Time `gorm:"index"`
 		Qty       uint
 		Price     float64
 		Country   string

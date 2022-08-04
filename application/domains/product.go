@@ -3,19 +3,51 @@ package domains
 import (
 	"errors"
 	"math"
+	"time"
 
-	"github.com/jinzhu/gorm"
+	dto "github.com/philaden/mds-stock-keeping/application/dtos"
 )
 
 type (
 	Product struct {
-		gorm.Model
+		ID             uint `gorm:"primaryKey"`
+		CreatedAt      time.Time
+		UpdatedAt      time.Time
+		DeletedAt      *time.Time `gorm:"index"`
 		Name           string
 		Sku            string
 		Country        string
 		AvailableStock uint
 	}
+
+	Products []Product
 )
+
+func ToDto(prd Product) *dto.ProductResponseDto {
+	return &dto.ProductResponseDto{
+		ID:             prd.ID,
+		CreatedAt:      prd.CreatedAt,
+		Name:           prd.Name,
+		Sku:            prd.Sku,
+		Country:        prd.Country,
+		AvailableStock: prd.AvailableStock,
+	}
+}
+
+func ToSliceDto(prds Products) dto.ProductsResponseDto {
+	var dtos []dto.ProductResponseDto
+	for _, value := range prds {
+		dtos = append(dtos, dto.ProductResponseDto{
+			ID:             value.ID,
+			CreatedAt:      value.CreatedAt,
+			Name:           value.Name,
+			Sku:            value.Sku,
+			Country:        value.Country,
+			AvailableStock: value.AvailableStock,
+		})
+	}
+	return dtos
+}
 
 func (prd *Product) RemoveStock(quantityDesired int) (stockBalance uint, err error) {
 	if prd.AvailableStock == 0 {

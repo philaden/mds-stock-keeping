@@ -6,8 +6,11 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
+ 
+make: *** No rule to make target `all'.  Stop.
 
-# Make data base, printed on Tue Aug  2 21:13:26 2022
+
+# Make data base, printed on Wed Aug  3 14:16:08 2022
 
 # Variables
 
@@ -182,7 +185,7 @@ all:
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
-.PHONY: postgres
+.PHONY: postgres test
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -196,11 +199,20 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-08-02 10:43:50
+#  Last modified 2022-08-02 22:25:44
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+test:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 5):
+	go test -v -cover ./...
+	
 
 # Not a target:
 .DEFAULT:
@@ -209,7 +221,7 @@ Makefile:
 #  File has not been updated.
 
 # files hash-table stats:
-# Load=6/1024=1%, Rehash=0, Collisions=0/19=0%
+# Load=7/1024=1%, Rehash=0, Collisions=0/21=0%
 # VPATH Search Paths
 
 # No `vpath' search paths.
@@ -221,8 +233,6 @@ Makefile:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Tue Aug  2 21:13:26 2022
+# Finished Make data base on Wed Aug  3 14:16:08 2022
 
  
-make: *** No rule to make target `all'.  Stop.
-

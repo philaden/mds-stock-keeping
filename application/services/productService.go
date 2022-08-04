@@ -10,15 +10,15 @@ import (
 
 	"github.com/jinzhu/gorm"
 	domain "github.com/philaden/mds-stock-keeping/application/domains"
-	params "github.com/philaden/mds-stock-keeping/application/dtos"
+	dto "github.com/philaden/mds-stock-keeping/application/dtos"
 )
 
 type (
 	IProductService interface {
 		UploadStock(file *multipart.FileHeader) (bool, error)
-		GetProducts() (products []domain.Product, err error)
-		GetProductBySku(sku string) (prd *domain.Product, err error)
-		CreateSingleStock(stock params.UploadProductParam) (bool, error)
+		GetProducts() (dto.ProductsResponseDto, error)
+		GetProductBySku(sku string) (*dto.ProductResponseDto, error)
+		CreateSingleStock(stock dto.UploadProductParam) (bool, error)
 	}
 
 	ProductService struct {
@@ -43,7 +43,7 @@ func (productService ProductService) UploadStock(file *multipart.FileHeader) (bo
 		return false, err
 	}
 
-	var stocks []params.UploadProductParam
+	var stocks []dto.UploadProductParam
 	for i := 0; i < len(lines); i++ {
 		if i == 0 {
 			continue
@@ -57,13 +57,13 @@ func (productService ProductService) UploadStock(file *multipart.FileHeader) (bo
 			continue
 		}
 
-		uploadData := params.UploadProductParam{Country: line[0], Sku: line[1], Name: line[2], StockChange: stockChange}
+		uploadData := dto.UploadProductParam{Country: line[0], Sku: line[1], Name: line[2], StockChange: stockChange}
 		stocks = append(stocks, uploadData)
 	}
 	return productService.SaveStocks(stocks)
 }
 
-func (productService ProductService) SaveStocks(stocks []params.UploadProductParam) (bool, error) {
+func (productService ProductService) SaveStocks(stocks []dto.UploadProductParam) (bool, error) {
 	for _, stock := range stocks {
 		var prd *domain.Product = &domain.Product{}
 
@@ -97,22 +97,24 @@ func (productService ProductService) SaveStocks(stocks []params.UploadProductPar
 	return true, nil
 }
 
-func (productService ProductService) GetProducts() (products []domain.Product, err error) {
+func (productService ProductService) GetProducts() (dto.ProductsResponseDto, error) {
+	var products []domain.Product
 	if err := productService.DbContext.Find(&products).Error; err != nil {
 		return nil, err
 	}
-	return products, nil
+	return domain.ToSliceDto(products), nil
 }
 
-func (productService ProductService) GetProductBySku(sku string) (prd *domain.Product, err error) {
-	prd = &domain.Product{}
+func (productService ProductService) GetProductBySku(sku string) (*dto.ProductResponseDto, error) {
+
+	prd := domain.Product{}
 	if err := productService.DbContext.Where(&domain.Product{Sku: sku}).First(&prd).Error; err != nil {
 		return nil, err
 	}
-	return prd, nil
+	return domain.ToDto(prd), nil
 }
 
-func (productService ProductService) CreateSingleStock(stock params.UploadProductParam) (bool, error) {
+func (productService ProductService) CreateSingleStock(stock dto.UploadProductParam) (bool, error) {
 	var prd *domain.Product = &domain.Product{}
 	payload, _ := json.Marshal(stock)
 	fmt.Printf(string(payload))
