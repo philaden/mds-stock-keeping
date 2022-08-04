@@ -2,15 +2,13 @@ package services
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
-	"math"
 	"mime/multipart"
 	"strconv"
 
-	"github.com/jinzhu/gorm"
 	domain "github.com/philaden/mds-stock-keeping/application/domains"
 	dto "github.com/philaden/mds-stock-keeping/application/dtos"
+	repo "github.com/philaden/mds-stock-keeping/application/repositories"
 )
 
 type (
@@ -22,11 +20,15 @@ type (
 	}
 
 	ProductService struct {
-		DbContext *gorm.DB
+		ProductRepository repo.IProductRepository
 	}
 )
 
-func (productService ProductService) UploadStock(file *multipart.FileHeader) (bool, error) {
+func NewProductService(productRepository repo.IProductRepository) ProductService {
+	return ProductService{ProductRepository: productRepository}
+}
+
+func (service ProductService) UploadStock(file *multipart.FileHeader) (bool, error) {
 
 	openedFile, err := file.Open()
 	defer openedFile.Close()
@@ -60,89 +62,32 @@ func (productService ProductService) UploadStock(file *multipart.FileHeader) (bo
 		uploadData := dto.UploadProductParam{Country: line[0], Sku: line[1], Name: line[2], StockChange: stockChange}
 		stocks = append(stocks, uploadData)
 	}
-	return productService.SaveStocks(stocks)
+	return service.SaveStocks(stocks)
 }
 
-func (productService ProductService) SaveStocks(stocks []dto.UploadProductParam) (bool, error) {
+func (service ProductService) SaveStocks(stocks []dto.UploadProductParam) (bool, error) {
 	for _, stock := range stocks {
-		var prd *domain.Product = &domain.Product{}
-
-		if err := productService.DbContext.Where(&domain.Product{Sku: stock.Sku, Country: stock.Country}).First(&prd).Error; err == nil {
-			if ok := math.Signbit(float64(stock.StockChange)); ok {
-				if _, err := prd.RemoveStock(stock.StockChange); err != nil {
-					return false, err
-				}
-			} else {
-				if _, err := prd.AddStock(stock.StockChange); err != nil {
-					return false, err
-				}
-			}
-
-			if err := productService.DbContext.Save(&prd).Error; err != nil {
-				return false, err
-			}
-		} else {
-			newProduct := domain.Product{
-				Name:           stock.Name,
-				Sku:            stock.Sku,
-				Country:        stock.Country,
-				AvailableStock: domain.GetNewStockValue(stock.StockChange),
-			}
-
-			if err := productService.DbContext.Create(&newProduct).Error; err != nil {
-				return false, err
-			}
-		}
+		service.ProductRepository.SaveStock(stock.Country, stock.Sku, stock.Name, stock.StockChange)
 	}
 	return true, nil
 }
 
-func (productService ProductService) GetProducts() (dto.ProductsResponseDto, error) {
-	var products []domain.Product
-	if err := productService.DbContext.Find(&products).Error; err != nil {
+func (service ProductService) GetProducts() (dto.ProductsResponseDto, error) {
+	data, err := service.ProductRepository.GetProducts()
+	if err != nil {
 		return nil, err
 	}
-	return domain.ToSliceDto(products), nil
+	return domain.ToSliceDto(data), nil
 }
 
-func (productService ProductService) GetProductBySku(sku string) (*dto.ProductResponseDto, error) {
-
-	prd := domain.Product{}
-	if err := productService.DbContext.Where(&domain.Product{Sku: sku}).First(&prd).Error; err != nil {
+func (service ProductService) GetProductBySku(sku string) (*dto.ProductResponseDto, error) {
+	data, err := service.ProductRepository.GetProductBySku(sku)
+	if err != nil {
 		return nil, err
 	}
-	return domain.ToDto(prd), nil
+	return domain.ToDto(data), nil
 }
 
-func (productService ProductService) CreateSingleStock(stock dto.UploadProductParam) (bool, error) {
-	var prd *domain.Product = &domain.Product{}
-	payload, _ := json.Marshal(stock)
-	fmt.Printf(string(payload))
-
-	if err := productService.DbContext.Where(&domain.Product{Sku: stock.Sku}).First(&prd).Error; err == nil {
-		if ok := math.Signbit(float64(stock.StockChange)); ok {
-			if _, err := prd.RemoveStock(stock.StockChange); err != nil {
-				return false, err
-			}
-		} else {
-			if _, err := prd.AddStock(stock.StockChange); err != nil {
-				return false, err
-			}
-		}
-		if err := productService.DbContext.Save(&prd).Error; err != nil {
-			return false, err
-		}
-	} else {
-		newProduct := domain.Product{
-			Name:           stock.Name,
-			Sku:            stock.Sku,
-			Country:        stock.Country,
-			AvailableStock: 0,
-		}
-
-		if err := productService.DbContext.Create(&newProduct).Error; err != nil {
-			return false, err
-		}
-	}
-	return true, nil
+func (service ProductService) CreateSingleStock(stock dto.UploadProductParam) (bool, error) {
+	return service.ProductRepository.SaveStock(stock.Country, stock.Name, stock.Sku, stock.StockChange)
 }

@@ -1,40 +1,43 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-	params "github.com/philaden/mds-stock-keeping/application/dtos"
-	Inject "github.com/philaden/mds-stock-keeping/application/services"
+	dto "github.com/philaden/mds-stock-keeping/application/dtos"
+	"github.com/philaden/mds-stock-keeping/application/repositories"
+	"github.com/philaden/mds-stock-keeping/application/services"
 	"github.com/philaden/mds-stock-keeping/infrastructure"
 )
 
 type ApiService struct {
-	Product_Service Inject.IProductService
-	order_Service   Inject.IOrderService
+	ProductService services.IProductService
+	OrderService   services.IOrderService
+}
+
+func NewApiService() ApiService {
+	productRepo := repositories.NewProductRepostiory(infrastructure.Connection)
+	orderRepo := repositories.NewOrderRepostiory(infrastructure.Connection)
+
+	return ApiService{
+		ProductService: services.NewProductService(productRepo),
+		OrderService:   services.NewOrderService(orderRepo),
+	}
 }
 
 func SetupContollerRoutes(router *gin.Engine) {
+	services := NewApiService()
+	controller := router.Group("/api")
 
-	services := ApiService{
-		Product_Service: Inject.ProductService{
-			DbContext: infrastructure.Connection,
-		},
-
-		order_Service: Inject.OrderService{
-			DbContext: infrastructure.Connection,
-		},
-	}
-
-	controllerRouter := router.Group("/api")
-
-	controllerRouter.POST("/products", services.HandleStockBulkUpload)
-	controllerRouter.GET("/products/:sku", services.HandleGetProductBySku)
-	controllerRouter.GET("/products", services.HandleGetProducts)
-	controllerRouter.POST("/products/single", services.HandleSingleStock)
-	controllerRouter.POST("/orders", services.HandleCreateOrder)
+	controller.POST("/products", services.HandleStockBulkUpload)
+	controller.GET("/products/:sku", services.HandleGetProductBySku)
+	controller.GET("/products", services.HandleGetProducts)
+	controller.POST("/products/single", services.HandleSingleStock)
+	controller.POST("/orders", services.HandleCreateOrder)
 }
 
 // @Summary update stocks
@@ -50,7 +53,16 @@ func (apiServices ApiService) HandleStockBulkUpload(c *gin.Context) {
 		return
 	}
 
-	go apiServices.Product_Service.UploadStock(file)
+	fileType := strings.Split(file.Header.Get("Content-Type"), "/")[1]
+	if fileType != "csv" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Invalid file type. Please upload a csv file",
+			"status":  false,
+			"error":   errors.New("Invalid file type. Please upload a csv file"),
+		})
+	}
+
+	go apiServices.ProductService.UploadStock(file)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "stock uploaded successfully",
@@ -73,7 +85,7 @@ func (apiServices ApiService) HandleGetProductBySku(c *gin.Context) {
 		return
 	}
 
-	response, err := apiServices.Product_Service.GetProductBySku(skuParam)
+	response, err := apiServices.ProductService.GetProductBySku(skuParam)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Something went wrong while trying to process that, please try again.", "error": err.Error()})
@@ -95,7 +107,7 @@ func (apiServices ApiService) HandleGetProductBySku(c *gin.Context) {
 // @Router /api/products [get]
 func (apiServices ApiService) HandleGetProducts(c *gin.Context) {
 
-	response, err := apiServices.Product_Service.GetProducts()
+	response, err := apiServices.ProductService.GetProducts()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Something went wrong while trying to process that, please try again.", "error": err.Error()})
@@ -117,14 +129,14 @@ func (apiServices ApiService) HandleGetProducts(c *gin.Context) {
 // @Router /api/products/single [post]
 func (apiServices ApiService) HandleSingleStock(c *gin.Context) {
 
-	var json params.UploadProductParam
+	var json dto.UploadProductParam
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect details supplied, please try again."})
 		return
 	}
 
-	status, err := apiServices.Product_Service.CreateSingleStock(json)
+	status, err := apiServices.ProductService.CreateSingleStock(json)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Something went wrong while trying to process that, please try again.", "error": err.Error()})
@@ -144,14 +156,14 @@ func (apiServices ApiService) HandleSingleStock(c *gin.Context) {
 // @Router /order [post]
 func (apiServices ApiService) HandleCreateOrder(c *gin.Context) {
 
-	var json params.CreateOrderParam
+	var json dto.CreateOrderParam
 
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Incorrect details supplied, please try again."})
 		return
 	}
 
-	insertedId, err := apiServices.order_Service.CreateOrder(json)
+	insertedId, err := apiServices.OrderService.CreateOrder(json)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Something went wrong while trying to process that, please try again.", "error": err.Error()})

@@ -4,22 +4,26 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	domain "github.com/philaden/mds-stock-keeping/application/domains"
-	params "github.com/philaden/mds-stock-keeping/application/dtos"
+	dto "github.com/philaden/mds-stock-keeping/application/dtos"
+	repo "github.com/philaden/mds-stock-keeping/application/repositories"
 )
 
 type (
 	IOrderService interface {
-		CreateOrder(model params.CreateOrderParam) (uint, error)
+		CreateOrder(model dto.CreateOrderParam) (uint, error)
 	}
 
 	OrderService struct {
-		DbContext *gorm.DB
+		OrderRepository repo.IOrderRepository
 	}
 )
 
-func (orderService OrderService) CreateOrder(model params.CreateOrderParam) (uint, error) {
+func NewOrderService(orderRepository repo.IOrderRepository) OrderService {
+	return OrderService{OrderRepository: orderRepository}
+}
+
+func (orderService OrderService) CreateOrder(model dto.CreateOrderParam) (uint, error) {
 
 	for _, item := range model.OrderItems {
 		if item.Qty <= 0 {
@@ -29,7 +33,7 @@ func (orderService OrderService) CreateOrder(model params.CreateOrderParam) (uin
 
 	order := domain.Order{Status: domain.OrderStatus, Country: model.Country}
 
-	qty, available, err := orderService.validateStock(model.Country, model.OrderItems)
+	qty, available, err := orderService.OrderRepository.ValidateStock(model.Country, model.OrderItems)
 
 	if err != nil {
 		return qty, err
@@ -44,85 +48,19 @@ func (orderService OrderService) CreateOrder(model params.CreateOrderParam) (uin
 	}
 	order.Total = float64(order.TotalValueOfOrderItems())
 
-	if err := orderService.DbContext.Create(&order).Error; err != nil {
+	if _, err := orderService.OrderRepository.CreateSingleOrder(order); err != nil {
 		return 0, err
 	}
 
-	orderChannel := make(chan params.OrderItemParam)
+	orderChannel := make(chan dto.OrderItemParam)
 	go funnelInOrderItems(orderChannel, model.OrderItems)
-	go orderService.updateStockLevel(orderChannel, order.ID)
+	go orderService.OrderRepository.UpdateStockLevel(orderChannel, order.ID)
 
 	return order.ID, nil
 }
 
-func (orderService OrderService) validateStock(country string, orderItems []params.OrderItemParam) (stockBalance uint, isAvailable bool, err error) {
-	for _, orderItem := range orderItems {
-		var product domain.Product
-
-		if err := orderService.DbContext.First(&product, orderItem.ProductId).Error; err != nil {
-			return 0, false, err
-		}
-
-		stockBalance += product.AvailableStock
-
-		if product.Country != country {
-			return 0, false, errors.New("This product does not belong to the country you are ordering from")
-		}
-
-		if orderItem.Qty > product.AvailableStock {
-			return 0, false, errors.New("ordered quantity is greater than the value of stock")
-		}
-	}
-	isAvailable = true
-	return stockBalance, isAvailable, nil
-}
-
-func funnelInOrderItems(orderChannel chan params.OrderItemParam, model []params.OrderItemParam) {
+func funnelInOrderItems(orderChannel chan dto.OrderItemParam, model []dto.OrderItemParam) {
 	for _, item := range model {
 		orderChannel <- item
 	}
-}
-
-func (orderService OrderService) updateStockLevel(orderChannel chan params.OrderItemParam, orderId uint) error {
-
-	var order domain.Order
-
-	if err := orderService.DbContext.Preload("OrderItems").First(&order, orderId).Error; err != nil {
-		fmt.Printf(err.Error())
-		return err
-	}
-
-	var orderedItems []domain.OrderItem
-	productIds := make([]uint, len(order.OrderItems)-1)
-
-	for _, item := range order.OrderItems {
-		productIds = append(productIds, item.ProductID)
-	}
-
-	orderedItems = orderService.getOrderItemsByProductIds(productIds)
-
-	for {
-		item := <-orderChannel
-		for _, oItem := range orderedItems {
-			if oItem.ProductID == item.ProductId && oItem.OrderID == orderId {
-				var prod domain.Product
-				if err := orderService.DbContext.First(&prod, oItem.ProductID).Error; err == nil {
-					prod.AvailableStock = prod.AvailableStock - item.Qty
-					orderService.DbContext.Save(&prod)
-				}
-			}
-		}
-	}
-}
-
-func (orderService OrderService) getOrderItemsByProductIds(productIds []uint) (orderedItems []domain.OrderItem) {
-
-	for _, pId := range productIds {
-		var subQueryItems []domain.OrderItem
-		orderService.DbContext.Model("order_items").Where(&domain.OrderItem{ProductID: pId}).Find(&subQueryItems)
-		for _, item := range subQueryItems {
-			orderedItems = append(orderedItems, item)
-		}
-	}
-	return orderedItems
 }

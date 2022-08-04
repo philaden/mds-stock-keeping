@@ -23,7 +23,7 @@ type (
 	Products []Product
 )
 
-func ToDto(prd Product) *dto.ProductResponseDto {
+func ToDto(prd *Product) *dto.ProductResponseDto {
 	return &dto.ProductResponseDto{
 		ID:             prd.ID,
 		CreatedAt:      prd.CreatedAt,
@@ -49,31 +49,28 @@ func ToSliceDto(prds Products) dto.ProductsResponseDto {
 	return dtos
 }
 
-func (prd *Product) RemoveStock(quantityDesired int) (stockBalance uint, err error) {
+func (prd *Product) RemoveStock(stockChange int) (stockBalance uint, err error) {
 	if prd.AvailableStock == 0 {
 		return 0, errors.New("available stock balance can not be less than 0")
 	}
 
-	if quantityDesired > int(prd.AvailableStock) {
+	if stockChange > int(prd.AvailableStock) {
 		return 0, errors.New("Invalid unit of quantity provided. Value can not be less than 0 or zero")
 	}
 
-	prd.AvailableStock -= uint(math.Abs(float64(quantityDesired)))
+	prd.AvailableStock -= uint(stockChange)
 	return prd.AvailableStock, nil
 }
 
-func (prd *Product) AddStock(quantityDesired int) (stockBalance uint, err error) {
+func (prd *Product) AddStock(stockChange int) (uint, error) {
 
-	originalBalance := prd.AvailableStock
-
-	if quantityDesired <= 0 {
+	if stockChange <= 0 {
 		return 0, errors.New("Invalid unit of quantity provided. Value can not be less than 0 or zero")
 	}
 
-	prd.AvailableStock += uint(quantityDesired)
+	prd.AvailableStock += uint(stockChange)
 
-	balance := prd.AvailableStock - originalBalance
-	return uint(balance), nil
+	return uint(prd.AvailableStock), nil
 }
 
 func GetNewStockValue(value int) uint {
