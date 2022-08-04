@@ -4,7 +4,7 @@ package services
 // 	"testing"
 
 // 	"github.com/golang/mock/gomock"
-// 	"github.com/philaden/mds-stock-keeping/application/mocks"
+// 	_ "github.com/philaden/mds-stock-keeping/application/mocks"
 // )
 
 // func TestGetProducts(t *testing.T) {
